@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+
+    <script>
+        var userbtn = "";
+        var userSession = "";
+
+        $(function(){
+          $("#importPart").load("navbar");
+        });
+
+
+        const login = () => {
+            const user = {
+                UserName: document.getElementById("uname").value,
+                Password: document.getElementById("password").value
+            }
+            if(user.UserName == "" || user.Password == ""){
+                window.alert("please make sure you enter all the details !");
+            }
+            else {
+                const options = {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+
+                    body: JSON.stringify(user)
+                };
+
+                fetch('login/checkDetails', options)
+                .then((res) => {
+                   res.json().then(json => {
+                        if(json.status == "failed") {
+                            window.alert("user not found in the system!");
+                        } else {
+                            console.log(json);
+                            if(json.data == "Admin"){
+                                window.location.href = '/administrator';
+                            }
+                            if(json.data == "Worker"){
+                                window.location.href = '/worker';
+                            }
+                        }
+                   })
+                });
+            }
+        }
+    </script>
+
+    <title>Garbage System Application</title>
+</head>
+<body>
+<div id="importPart"></div>
+<br>
+<div id="app" class="jumbotron">
+    <p class="lead">Login</p>
+<!--    <button id="admin-btn" type="button" class="btn btn-outline-secondary" onclick="chooseClick('admin')">Admin</button>-->
+<!--    <button id="worker-btn" type="button" class="btn btn-outline-secondary" onclick="chooseClick('worker')">Worker</button>-->
+    <!--    <button type="button" class="btn btn-outline-secondary">Secondary</button>-->
+
+    <hr class="my-4">
+    <p class="lead">Please enter your user name and password</p>
+    <form>
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">User name:</span>
+            </div>
+            <input type="text" id="uname" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1">
+
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">Password: </span>
+            </div>
+            <input  type="password" id="password"  class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1"/>
+        </div>
+        <button id="admin-btn" type="button" class="btn btn-outline-secondary" onclick="login()">Login</button>
+    </form>
+
+
+
+</div>
+
+
+</body>
+</html>

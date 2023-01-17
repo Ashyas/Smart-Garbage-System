@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+
+    <script>
+        $(function(){
+          $("#importPart").load("navbar");
+        });
+
+        var binsDrop;
+        var linesDrop;
+        var truckDrop;
+        const showBins = () => {
+            const options = {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            };
+            fetch('/administrator/showBins', options)
+            .then((res) => {
+               res.json().then(json => {
+                    buildBinsTable(json);
+               })
+            });
+        } //end showBins function
+
+        const showWorkers = () => {
+            const options = {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            };
+            fetch('/administrator/showWorkers', options)
+            .then((res) => {
+               res.json().then(json => {
+                    buildWorkersTable(json);
+               })
+            });
+        } //end showWorkers function
+
+        const buildWorkersTable = (workers) => {
+            if(document.getElementById('workers-table') != null){
+                document.getElementById('show-workers').style.fontWeight = 'normal';
+                 closeTable('workers-table');
+                 return;
+            }
+            document.getElementById('show-workers').style.fontWeight = 'bold';
+            var table = document.createElement('table');
+            table.setAttribute('class', 'table');
+            table.setAttribute('id', 'workers-table');
+            let names = ['User Name', 'First Name', 'Last Name', 'Salary'];
+            for(let r = 0; r <= workers.workers.length; r++) {
+                if(r === 0) {
+                    var row = table.insertRow();
+                    for(let i = 0; i < names.length; i++){
+                        var cell = row.insertCell();
+                        cell.setAttribute('scope', 'col');
+                        cell.appendChild(document.createTextNode(names[i]));
+                    }
+                } else {
+                        var row = table.insertRow();
+                        var cell = row.insertCell();
+                        cell.setAttribute('scope', 'row');
+                        cell.appendChild(document.createTextNode(workers.workers[r - 1].userName));
+                        var cell = row.insertCell();
+                        cell.appendChild(document.createTextNode(workers.workers[r - 1].firstName));
+                        var cell = row.insertCell();
+                        cell.appendChild(document.createTextNode(workers.workers[r - 1].lastName));
+                        var cell = row.insertCell();
+                        cell.appendChild(document.createTextNode(workers.workers[r - 1].salary));
+                    }
+                }
+            var theTable = document.getElementById('workers').appendChild(table);
+        } //end build Workers table
+
+        const buildBinsTable = (bins) => {
+            if(document.getElementById('bins-table') != null){
+                document.getElementById('show-bins').style.fontWeight = 'normal';
+                closeTable('bins-table');
+                return;
+            }
+            document.getElementById('show-bins').style.fontWeight = 'bold';
+            var table = document.createElement('table');
+            table.setAttribute('class', 'table');
+            table.setAttribute('id', 'bins-table');
+            let names = ['Id', 'Neighborhood', 'State'];
+            for(let r = 0; r <= bins.bins.length; r++) {
+                if(r === 0) {
+                    var row = table.insertRow();
+                    for(let i = 0; i < names.length; i++){
+                        var cell = row.insertCell();
+                        cell.setAttribute('scope', 'col');
+                        cell.appendChild(document.createTextNode(names[i]));
+                    }
+                } else {
+                        var row = table.insertRow();
+                        var cell = row.insertCell();
+                        cell.setAttribute('scope', 'row');
+                        cell.appendChild(document.createTextNode(bins.bins[r - 1].id));
+                        var cell = row.insertCell();
+                        cell.appendChild(document.createTextNode(bins.bins[r - 1].neighborhood));
+                        var cell = row.insertCell();
+                        cell.appendChild(document.createTextNode(bins.bins[r - 1].state));
+
+                    }
+            }
+            let theTable = document.getElementById('bins').appendChild(table);
+        } //end build Bins table
+
+        const addBinToRoute = () => {
+            if(document.getElementById('bin-to-line') != null){
+                document.getElementById('bin-route').style.fontWeight = 'normal';
+                closeTable('bin-to-line');
+                return;
+            }
+           document.getElementById('bin-route').style.fontWeight = 'bold';
+           const options = {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            };
+            fetch('/administrator/getBinsAndLines', options)
+            .then((res) => {
+               res.json().then(json => {
+                    createDropDown(json);
+               })
+            });
+        }//end function add bin to route
+
+        const addBinToLineClick = () => {
+            const binId = binsDrop.options[binsDrop.selectedIndex].value;
+            const lineId = linesDrop.options[linesDrop.selectedIndex].value;
+            if(binId == "Select bin id" || lineId == "Select route number"){
+                return;
+            }
+
+            const data = {
+                id: binId,
+                line: lineId
+            }
+
+            const options = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(data)
+            };
+
+            fetch('/administrator/addBinToLine', options)
+            .then((res) => {
+               res.json().then(json => {
+                   alert(json.data);
+               })
+            });
+        }// end function add Bin To Line Click
+
+        const createDropDown = (data) => {
+            var binToLine = document.createElement('div');
+            binToLine.setAttribute('id', 'bin-to-line');
+            binsDrop = document.createElement('select');
+            linesDrop = document.createElement('select');
+            var addBtn = document.createElement('button');
+            addBtn.setAttribute('class', 'btn btn-outline-secondary');
+            addBtn.innerHTML = "Add";
+
+            var option = document.createElement('option');
+            option.text = "Select bin id";
+            binsDrop.appendChild(option);
+
+            var option = document.createElement('option');
+            option.text = "Select route number";
+            linesDrop.appendChild(option);
+
+            for(let i of data.id){
+                var option = document.createElement('option');
+                option.value = i;
+                option.text = i;
+                binsDrop.appendChild(option);
+            }
+
+            for(let l of data.line) {
+                var option = document.createElement('option');
+                option.value = l;
+                option.text = l;
+                linesDrop.appendChild(option);
+            }
+            addBtn.setAttribute('onclick', 'addBinToLineClick();');
+            binToLine.appendChild(binsDrop);
+            binToLine.appendChild(linesDrop);
+            binToLine.appendChild(addBtn);
+            document.getElementById('bin-route-div').appendChild(binToLine);
+        }// end function create drop down
+
+
+        const ChangeTruckRoute = () => {
+            if(document.getElementById('truck-line') != null){
+                document.getElementById('truck-route').style.fontWeight = 'normal';
+                closeTable('truck-line');
+                return;
+            }
+           document.getElementById('truck-route').style.fontWeight = 'bold';
+           const options = {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            };
+            fetch('/administrator/getTruckAndRoutes', options)
+            .then((res) => {
+               res.json().then(json => {
+                    ChangeTruckLineDropDown(json);
+               })
+            });
+        }// end Change Truck Route function
+
+        const ChangeTruckLineDropDown = (data) => {
+            var changeTruckLine = document.createElement('div');
+            changeTruckLine.setAttribute('id', 'truck-line');
+            truckDrop = document.createElement('select');
+            linesDrop = document.createElement('select');
+            var addBtn = document.createElement('button');
+            addBtn.setAttribute('class', 'btn btn-outline-secondary');
+            addBtn.innerHTML = "Change";
+
+            var option = document.createElement('option');
+            option.text = "Select truck number";
+            truckDrop.appendChild(option);
+
+            var option = document.createElement('option');
+            option.text = "Select line number";
+            linesDrop.appendChild(option);
+
+            for(let t of data.truck){
+                var option = document.createElement('option');
+                option.value = t;
+                option.text = t;
+                truckDrop.appendChild(option);
+            }
+
+            for(let l of data.line) {
+                var option = document.createElement('option');
+                option.value = l;
+                option.text = l;
+                linesDrop.appendChild(option);
+            }
+            addBtn.setAttribute('onclick', 'changeTruckLine();');
+            changeTruckLine.appendChild(truckDrop);
+            changeTruckLine.appendChild(linesDrop);
+            changeTruckLine.appendChild(addBtn);
+            document.getElementById('truck-route-div').appendChild(changeTruckLine);
+        }//end Change Truck Line Drop Down function
+
+        const changeTruckLine = () => {
+            const truck = truckDrop.options[truckDrop.selectedIndex].value;
+            const lineId = linesDrop.options[linesDrop.selectedIndex].value;
+            if(truck == "Select truck number" || lineId == "Select line number"){
+                return;
+            }
+
+            const data = {
+                truck: truck,
+                line: lineId
+            }
+
+            const options = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(data)
+            };
+
+            fetch('/administrator/changeTruckRoute', options)
+            .then((res) => {
+               res.json().then(json => {
+                   alert(json.data);
+               })
+            });
+
+        }//end change Truck Line function
+
+        const closeTable = (id) => {
+            document.getElementById(id).remove();
+        } // end close table function
+
+    </script>
+
+    <title>Garbage System Application</title>
+</head>
+<body>
+<div id="importPart"></div>
+<br>
+<div>
+    <section class="text-center col-12">
+        <a href="/login">
+            <button class="btn btn-secondary btn-xl">Log Out</button>
+        </a>
+        <hr>
+        <a href="https://mailchi.mp/5969ec9b5ba1/startup">
+            <button class="btn btn-primary btn-xl">Contact developers</button>
+        </a>
+    </section>
+</div>
+<br>
+<div id="app" class="jumbotron" >
+        <p class="lead" >
+            <strong th:text="${User.FirstName + ' ' + User.LastName }"/> Welcome back to the application!
+        </p>
+        <hr class="my-4">
+    <div style="display:flex;flex-direction:row;">
+        <div style="width:50vw;">
+            <div id="administrator-menu">
+                <ul class = "nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="show-bins"><i onclick="showBins()" style="cursor:pointer;">Show all bins</i></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" id="show-workers"><i onclick="showWorkers()" style="cursor:pointer;">Show all workers</i></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" id="bin-route"><i onclick="addBinToRoute()" style="cursor:pointer;">Add bin to route</i></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" id="truck-route"><i onclick="ChangeTruckRoute()" style="cursor:pointer;">Change truck route line</i></a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div style="width:50vw;">
+            <div id="bins" style="width:50vw;"></div>
+            <div id="workers" style="width:50vw;"></div>
+            <div id="bin-route-div" style="width:50vw;"></div>
+            <div id="truck-route-div" style="width:50vw;"></div>
+        </div>
+    </div>
+
+</div>
+
+
+
+</body>
+</html>
